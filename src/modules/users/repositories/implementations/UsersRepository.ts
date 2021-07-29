@@ -16,7 +16,7 @@ export class UsersRepository implements IUsersRepository {
   }: IFindUserWithGamesDTO): Promise<User> {
     // Complete usando ORM
     const user = await this.repository.findOneOrFail({ 
-      relations: ["game"],
+      relations: ["games"],
       where: { id: user_id }
     });
 
