@@ -15,23 +15,41 @@ export class GamesRepository implements IGamesRepository {
   async findByTitleContaining(param: string): Promise<Game[]> {
     return this.repository
       .createQueryBuilder("games")
-      .where("LOWER(title) LIKE '%' || LOWER(:param) || '%'", { param })
+      .where("title ILIKE '%' || :title || '%'", { title: param })
       .getMany();
       // Complete usando query builder
+      // outra forma de colocar o like
+      // .where("title ILIKE :title", { title: `%${param}%` })
   }
 
   async countAllGames(): Promise<[{ count: string }]> {
-    return await this.repository.query("SELECT COUNT(*) FROM games"); // Complete usando raw query
+    return this.repository.query("SELECT COUNT(*) FROM games"); // Complete usando raw query
   }
 
   async findUsersByGameId(id: string): Promise<User[]> {
-    const ae = getRepository(User);
+    return this.repository
+      .createQueryBuilder("games")
+      .innerJoinAndSelect("games.users", "user")
+      .where("games.id = :id", { id })
+      .getOneOrFail()
+      .then(({users}) => {
+        return users
+      });
+
+      /*
+      Outra forma.
+
+      const games = await this.repository
+      .createQueryBuilder("games")
+      .innerJoinAndSelect("games.users", "user")
+      .where("games.id = :id", { id })
+      .getOneOrFail();
+
+      const { users } = games;
     
-    return ae
-    .createQueryBuilder("users")
-    .leftJoinAndSelect("users.id", "games")
-    .where("user.id = :id", { id })
-    .getMany();
+      return users;
+      
+      */
       // Complete usando query builder
   }
 }
